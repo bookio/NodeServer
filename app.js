@@ -1,101 +1,219 @@
 var express = require('express');
 var app = express();
-var url = 'postgres://kvfqksuntzehlc:dwO7w6TE7naBA56bMf55dgNTPV@ec2-54-204-47-70.compute-1.amazonaws.com:5432/d3uoq4q0g7rpeb?ssl=true';
-var pg = require('pg');
 var sprintf = require('./sprintf.js');
+var bodyParser = require('body-parser');
+var sequelize = require('./sequelize.js');
+
 
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json());
+
+app.use('/users', require('./routes/users'));
+app.use('/categories', require('./routes/categories'));
+app.use('/customers', require('./routes/customers'));
+app.use('/rentals', require('./routes/rentals'));
+app.use('/reservations', require('./routes/reservations'));
+app.use('/options', require('./routes/options'));
+app.use('/settings', require('./routes/settings'));
+app.use('/groups', require('./routes/groups'));
+app.use('/sessions', require('./routes/sessions'));
+app.use('/icons', require('./routes/icons'));
+app.use('/clients', require('./routes/clients'));
 
 
-function Rental() {
+app.get('/verify', function (request, response) {
 
-	var self = this;
+	var Model = require('./model');
+	var Server = require('./server');
 
-	self.
-	self.id = 0;
+	var server = new Server(request, response);
 	
-	self.save = function() {
+	Model.Session.findOne({where: {sid: request.headers.authorization}, include: [{model:Model.User, include:[{model:Model.Client}]}]}).then(function(session) {
+		if (session == null)
+			throw new Error('Invalid session ID.');
+	
+		var result = {};
+		result.sid = request.headers.authorization;
+		result.user = session.user;		
+		result.client = session.user.client;	
 		
-	}		
-}
+		server.reply(result);
+
+		
+	}).catch(function(error) {
+		server.error(error);
+	});	
+
+});
+
+app.get('/logout', function (request, response) {
+
+	server.reply(null);
+		
+
+});
 
 
+app.get('/signup', function (request, response) {
 
-function getClientID(client, request) {
+	var Model = require('./model');
+	var Server = require('./server');
+	var UUID = require('node-uuid');
 	
-
-	client.query('SELECT client_id FROM users WHERE id=(SELECT user_id FROM sessions WHERE sid=$1)', [request.headers.authorization], function(error, result) {
-
-
-		if (error)
-			throw error; 
-			
-		console.log(result.rows);
-			
-	});
-
-}
-app.get('/db', function (request, response) {
 	
-	console.log('Connecting...');
-	
-	pg.connect(url, function(err, client, done) {
-		if (err) {
-			console.error(err);
-		}
-		else {
-			
-			client.query('SELECT * FROM clients', function(err, result) {
-				done();
+	var server = new Server(request, response);
 
-				if (err) { 
-					console.error(err); response.send("Error " + err); 
+	try {
+		console.log('autg', request.headers.authorization);
+	
+		// Remove the inital "Basic "
+		var authorization = request.headers.authorization.split(' ')[1];
+		
+		// Decode
+		authorization = new Buffer(authorization, 'base64').toString('ascii');	
+	
+		var credentials = authorization.split(':');
+	
+		if (credentials.length != 2)
+			throw new Error('There is no authorization specified in the http header.');	
+			
+		var username = credentials[0];
+		var password = credentials[1];
+		
+		Model.User.findOne({where:{username:username}}).then(function(user) {
+
+			if (user == null)
+				throw new Error('Invalid user name.');
+
+				
+			Model.Session.findOne({where: {user_id: user.id}, include: [{model:Model.User, include:[{model:Model.Client}]}]}).then(function(session) {
+				
+				// Create a new session
+				if (session == null) {
+					Model.Session.create({user_id:user.id, sid:UUID.v1()}).then(function() {
+						Model.Session.findOne({where: {user_id: user.id}, include: [{model:Model.User, include:[{model:Model.Client}]}]}).then(function(session) {
+
+							if (session == null)
+								throw new Error('WTF?');
+								
+							server.reply({sid: session.sid, user:session.user, client:session.user.client});
+
+
+						}).catch(function(error) {
+							server.error(error);			
+						});
+						
+					}).catch(function(error) {
+						server.error(error);			
+					});
+					
 				}
 				else {
-					response.send(result.rows);
-				}
-			});
-			
-		}
-	});
-});
-
-
-app.get('/rentals/:id', function (request, response) {
-	
-	console.log('Request:', request.headers.authorization);
-//	console.log('Response:', response);
-	
-	try {
-		pg.connect(url, function(error, client, done) {
-			if (error)
-				throw error;
-			
-			getClientID(client, request);
-
-			client.query('SELECT * FROM rentals WHERE client_id=$1 AND id=$2', [request.params.id, 1], function(error, result) {
-				done();
-
-				if (error)
-					throw error; 
+					server.reply({sid: session.sid, user:session.user, client:session.user.client});
 					
-				response.send(JSON.stringify(result.rows, null, 4));
-			});
+				}
 				
+			}).catch(function(error) {
+				server.error(error);			
+			});
+			
+		}).catch(function(error) {
+			server.error(error.message);			
 		});
-		
+	
 	}
-	catch (error) {
-		console.error(error);
+	catch(error) {
+		server.error(error);
 		
 	}
 	
+	
+
 });
 
+
+app.get('/login', function (request, response) {
+
+	var Model = require('./model');
+	var Server = require('./server');
+	var UUID = require('node-uuid');
+	
+	
+	var server = new Server(request, response);
+
+	try {
+		console.log('autg', request.headers.authorization);
+	
+		// Remove the inital "Basic "
+		var authorization = request.headers.authorization.split(' ')[1];
+		
+		// Decode
+		authorization = new Buffer(authorization, 'base64').toString('ascii');	
+	
+		var credentials = authorization.split(':');
+	
+		if (credentials.length != 2)
+			throw new Error('There is no authorization specified in the http header.');	
+			
+		var username = credentials[0];
+		var password = credentials[1];
+		
+		Model.User.findOne({where:{username:username}}).then(function(user) {
+
+			if (user == null)
+				throw new Error('Invalid user name.');
+
+				
+			Model.Session.findOne({where: {user_id: user.id}, include: [{model:Model.User, include:[{model:Model.Client}]}]}).then(function(session) {
+				
+				// Create a new session
+				if (session == null) {
+					Model.Session.create({user_id:user.id, sid:UUID.v1()}).then(function() {
+						Model.Session.findOne({where: {user_id: user.id}, include: [{model:Model.User, include:[{model:Model.Client}]}]}).then(function(session) {
+
+							if (session == null)
+								throw new Error('WTF?');
+								
+							server.reply({sid: session.sid, user:session.user, client:session.user.client});
+
+
+						}).catch(function(error) {
+							server.error(error);			
+						});
+						
+					}).catch(function(error) {
+						server.error(error);			
+					});
+					
+				}
+				else {
+					server.reply({sid: session.sid, user:session.user, client:session.user.client});
+					
+				}
+				
+			}).catch(function(error) {
+				server.error(error);			
+			});
+			
+		}).catch(function(error) {
+			server.error(error.message);			
+		});
+	
+	}
+	catch(error) {
+		server.error(error);
+		
+	}
+	
+	
+
+});
 
 
 app.listen(app.get('port'), function() {
-	console.log("Node app is running at localhost:" + app.get('port'));
+	console.log("Node app is running on port " + app.get('port'));
 });
 
+module.exports = app;
