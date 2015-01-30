@@ -10,12 +10,6 @@ module.exports = sequelize.define('users', {
 		allowNull     : false
 	},
 	
-	'email': {
-		type          : Sequelize.STRING,
-		defaultValue  : '',
-		allowNull     : false
-	},
-	
 	'username': {
 		type          : Sequelize.STRING,
 		defaultValue  : '',
@@ -29,7 +23,7 @@ module.exports = sequelize.define('users', {
 	},
 	
 	
-	'guest': {
+	'status': {
 		type          : Sequelize.INTEGER,
 		defaultValue  : 0,
 		allowNull     : false

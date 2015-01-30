@@ -16,7 +16,8 @@ router.get('/guest', function (request, response) {
 			if (user == null) {
 				var attributes = {};
 				attributes.username = uuid.v1();
-				attributes.guest = 1;
+				attributes.status = 1;
+				attributes.name = 'Guest';
 				attributes.client_id = session.client_id;
 				
 				Model.User.create(attributes).then(function(user) {
@@ -46,7 +47,7 @@ router.get('/', function (request, response) {
 	
 	server.authenticate().then(function(session) {
 
-		Model.User.findAll({where: {client_id: session.client_id, guest:0}}).then(function(user) {
+		Model.User.findAll({where: {client_id: session.client_id, status:0}}).then(function(user) {
 		
 			server.reply(user);
 			

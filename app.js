@@ -96,7 +96,6 @@ app.get('/signup', function (request, response) {
 						var attrs = {};					
 						attrs.username  = username;
 						attrs.name      = username;
-						attrs.email     = username;
 						attrs.password  = password;
 						attrs.client_id = client.id;
 						
@@ -188,7 +187,16 @@ app.get('/login', function (request, response) {
 		var username = credentials[0];
 		var password = credentials[1];
 		
-		Model.User.findOne({where:{username:username}}).then(function(user) {
+		var query = {};
+		
+		query = {
+			where: Sequelize.or(
+				{name: username},
+				{username: username}
+			)
+		};
+		
+		Model.User.findOne(query).then(function(user) {
 
 			if (user == null)
 				throw new Error('Invalid user name.');
