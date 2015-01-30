@@ -41,7 +41,7 @@ Model.Category.hasMany(Model.Rental, {foreignKey: 'category_id'});
 Model.Rental.belongsTo(Model.Client, {foreignKey: 'client_id'});
 Model.Rental.belongsTo(Model.Category, {foreignKey: 'category_id'});
 Model.Rental.belongsTo(Model.Icon, {foreignKey: 'icon_id'});
-Model.Rental.belongsTo(Model.Option, {foreignKey: 'option_id'});
+//Model.Rental.belongsTo(Model.Option, {foreignKey: 'option_id'});
 Model.Rental.hasMany(Model.Reservation, {foreignKey: 'rental_id'});
 
 Model.Reservation.belongsTo(Model.Client, {foreignKey: 'client_id'});
