@@ -31,6 +31,12 @@ module.exports = sequelize.define('options', {
 		type          : Sequelize.STRING,
 		defaultValue  : '',
 		allowNull     : false
+	},
+
+	'image': {
+		type          : Sequelize.TEXT,
+		defaultValue  : '',
+		allowNull     : false
 	}
 
 }, { 
