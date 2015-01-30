@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.10.2",
+    "cors": "^2.5.3",
     "express": "^4.11.0",
     "fibers": "^1.0.5",
     "node-uuid": "^1.4.2",
