@@ -8,9 +8,9 @@ router.get('/', function (request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 	
-		console.log(currentuser.name);
+		console.log(session.name);
 
 		Model.Group.findAll().then(function(group) {
 			server.reply(group);
@@ -30,7 +30,7 @@ router.get('/:id', function (request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 		Model.Group.findOne({where: {id:request.params.id}}).then(function(group) {
 			if (group == null)
 				throw new Error(sprintf('Group with id %s not found.', request.params.id));
@@ -54,11 +54,11 @@ router.post('/', function (request, response) {
 
 	var server = new Server(request, response);
 		
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 		var group = Model.Group.build(request.body);
 		
 		// Attach it to my client
-		//group.client_id = currentUser.client_id;
+		//group.client_id = session.client_id;
 		
 		// Save it
 		group.save().then(function(group) {
@@ -80,7 +80,7 @@ router.put('/:id', function (request, response) {
 
 	var server = new Server(request, response);
 
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 		Model.Group.update(request.body, {returning: true, where: {id:request.params.id}}).then(function(data) {
 			
 			if (!data || data.length != 2)
@@ -110,7 +110,7 @@ router.delete('/:id', function(request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 
 		Model.Group.destroy({where: {id:request.params.id}}).then(function(data) {
 			server.reply(null);

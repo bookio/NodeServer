@@ -26,15 +26,15 @@ router.get('/guest', function (request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 
-		Model.User.findOne({where: {client_id: currentuser.client_id, guest:1}}).then(function(user) {
+		Model.User.findOne({where: {client_id: session.client_id, guest:1}}).then(function(user) {
 		
 			if (user == null) {
 				var attributes = {};
 				attributes.username = uuid.v1();
 				attributes.guest = 1;
-				attributes.client_id = currentuser.client_id;
+				attributes.client_id = session.client_id;
 				
 				Model.User.create(attributes).then(function(user) {
 					server.reply(user);
@@ -61,9 +61,9 @@ router.get('/', function (request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 
-		Model.User.findAll({where: {client_id: currentuser.client_id}}).then(function(user) {
+		Model.User.findAll({where: {client_id: session.client_id, guest:0}}).then(function(user) {
 		
 			server.reply(user);
 			
@@ -81,8 +81,8 @@ router.get('/:id', function (request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
-		Model.User.findOne({where: {client_id: currentuser.client_id, id:request.params.id}}).then(function(user) {
+	server.authenticate().then(function(session) {
+		Model.User.findOne({where: {client_id: session.client_id, id:request.params.id}}).then(function(user) {
 			if (user == null)
 				throw new Error(sprintf('User with id %s not found.', request.params.id));
 			
@@ -104,12 +104,12 @@ router.post('/', function (request, response) {
 
 	var server = new Server(request, response);
 		
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 
 		var user = Model.User.build(request.body);
 		
 		// Attach it to my client
-		user.client_id = currentuser.client_id;
+		user.client_id = session.client_id;
 		
 		// Save it
 		user.save().then(function(user) {
@@ -132,8 +132,8 @@ router.put('/:id', function (request, response) {
 
 	var server = new Server(request, response);
 
-	server.authenticate().then(function(currentuser) {
-		Model.User.update(request.body, {returning: true, where: {client_id:currentuser.client_id, id:request.params.id}}).then(function(data) {
+	server.authenticate().then(function(session) {
+		Model.User.update(request.body, {returning: true, where: {client_id:session.client_id, id:request.params.id}}).then(function(data) {
 			
 			if (!data || data.length != 2)
 				throw new Error('Invalid results.');
@@ -161,9 +161,9 @@ router.delete('/:id', function(request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 
-		Model.User.destroy({where: {client_id: currentuser.client_id, id:request.params.id}}).then(function() {
+		Model.User.destroy({where: {client_id: session.client_id, id:request.params.id}}).then(function() {
 			server.reply(null);
 
 		}).catch(function(error) {

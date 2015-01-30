@@ -8,9 +8,9 @@ router.get('/', function (request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 
-		Model.Reservation.findAll({where: {client_id: currentuser.client_id}}).then(function(reservation) {
+		Model.Reservation.findAll({where: {client_id: session.client_id}}).then(function(reservation) {
 			server.reply(reservation);
 
 		}).catch(function(error) {
@@ -27,8 +27,8 @@ router.get('/:id', function (request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
-		Model.Reservation.findOne({where: {client_id: currentuser.client_id, id:request.params.id}}).then(function(reservation) {
+	server.authenticate().then(function(session) {
+		Model.Reservation.findOne({where: {client_id: session.client_id, id:request.params.id}}).then(function(reservation) {
 			if (reservation == null)
 				throw new Error(sprintf('Reservation with id %s not found.', request.params.id));
 
@@ -49,12 +49,12 @@ router.post('/', function (request, response) {
 
 	var server = new Server(request, response);
 		
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 
 		var reservation = Model.Reservation.build(request.body);
 		
 		// Attach it to my client
-		reservation.client_id = currentuser.client_id;
+		reservation.client_id = session.client_id;
 		
 		// Save it
 		reservation.save().then(function(reservation) {
@@ -76,8 +76,8 @@ router.put('/:id', function (request, response) {
 
 	var server = new Server(request, response);
 
-	server.authenticate().then(function(currentuser) {
-		Model.Reservation.update(request.body, {returning: true, where: {client_id:currentuser.client_id, id:request.params.id}}).then(function(data) {
+	server.authenticate().then(function(session) {
+		Model.Reservation.update(request.body, {returning: true, where: {client_id:session.client_id, id:request.params.id}}).then(function(data) {
 			
 			if (!data || data.length != 2)
 				throw new Error('Invalid results.');
@@ -104,7 +104,7 @@ router.delete('/:id', function(request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 
 		Model.Reservation.destroy({where: {id:request.params.id}}).then(function(data) {
 			server.reply(null);

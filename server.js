@@ -45,11 +45,11 @@ module.exports = function(request, response) {
 */
 
 	self.authenticate = function() {
-		return Session.findOne({where: {sid: request.headers.authorization}, include: [{model:Model.User}]  }).then(function(session) {
+		return Session.findOne({where: {sid: request.headers.authorization}}).then(function(session) {
 			if (session == null)
 				throw new Error('Invalid session ID.');
 				
-			return session.user;
+			return session;
 		});
 	}
 

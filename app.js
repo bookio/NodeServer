@@ -3,6 +3,7 @@ var app = express();
 var sprintf = require('./sprintf.js');
 var bodyParser = require('body-parser');
 var sequelize = require('./sequelize.js');
+var Sequelize = require('sequelize');
 
 
 app.set('port', (process.env.PORT || 5000));
@@ -55,18 +56,56 @@ app.get('/logout', function (request, response) {
 
 });
 
+/*
+	def signup
+	begin
+		credentials = credentials()
+		
+		username = credentials[:username]
+		password = credentials[:password]
+		
+		user = User.find_by_username(username)
+		
+		if user == nil
+			ActiveRecord::Base.transaction do        
+				client = Client.new
+				client.name = "Bookio"
+				client.save!
+				
+				user = client.users.new
+				user.name     = username
+				user.username = username
+				user.email    = username
+				user.password = password   
+				user.save!
+			end
+		end
+		
+		session = Session.find_by_user_id(user.id)
+		
+		if session == nil
+			session = Session.new 
+			session.user = user 
+			session.save
+		end
+		
+		render :json => {:sid => session.sid, :client => session.user.client, :user => session.user}
+		
+		rescue Exception => exception
+			error exception.message, :not_found
+		end
+	end
 
+*/
 app.get('/signup', function (request, response) {
 
 	var Model = require('./model');
 	var Server = require('./server');
 	var UUID = require('node-uuid');
 	
-	
 	var server = new Server(request, response);
 
 	try {
-		console.log('autg', request.headers.authorization);
 	
 		// Remove the inital "Basic "
 		var authorization = request.headers.authorization.split(' ')[1];
@@ -78,47 +117,75 @@ app.get('/signup', function (request, response) {
 	
 		if (credentials.length != 2)
 			throw new Error('There is no authorization specified in the http header.');	
-			
+	
+	
 		var username = credentials[0];
 		var password = credentials[1];
 		
-		Model.User.findOne({where:{username:username}}).then(function(user) {
 
-			if (user == null)
-				throw new Error('Invalid user name.');
+		function getUser(username) {
+			return Model.User.findOne({where:{username:username}}).then(function(user) {
+				if (user != null)
+					return user;
 
-				
-			Model.Session.findOne({where: {user_id: user.id}, include: [{model:Model.User, include:[{model:Model.Client}]}]}).then(function(session) {
-				
-				// Create a new session
-				if (session == null) {
-					Model.Session.create({user_id:user.id, sid:UUID.v1()}).then(function() {
-						Model.Session.findOne({where: {user_id: user.id}, include: [{model:Model.User, include:[{model:Model.Client}]}]}).then(function(session) {
-
-							if (session == null)
-								throw new Error('WTF?');
-								
-							server.reply({sid: session.sid, user:session.user, client:session.user.client});
-
-
-						}).catch(function(error) {
-							server.error(error);			
+				return sequelize.transaction(function(t){
+					return Model.Client.create({name:'XXX'}, {transaction:t}).then(function(client) {
+						
+						var attrs = {};					
+						attrs.username  = username;
+						attrs.name      = username;
+						attrs.email     = username;
+						attrs.password  = password;
+						attrs.client_id = client.id;
+						
+						return Model.User.create(attrs, {transaction:t}).then(function(user){
+							return user;
 						});
 						
-					}).catch(function(error) {
-						server.error(error);			
+					}).catch(function(error){
+						throw new Error(error.message);
 					});
 					
-				}
-				else {
-					server.reply({sid: session.sid, user:session.user, client:session.user.client});
-					
-				}
+				});
+
 				
-			}).catch(function(error) {
-				server.error(error);			
+				
 			});
 			
+		}
+		
+
+		function getSession(user) {
+			return Model.Session.findOne({where: {user_id: user.id}}).then(function(session) {
+				
+				if (session != null)
+					return session;
+
+				return Model.Session.create({user_id:user.id, client_id:user.client_id, sid:UUID.v1()}, {returning:true});
+			});
+			
+		}
+
+
+		getUser(username).then(function(user) {
+			getSession(user).then(function(session) {
+
+				Model.Session.findOne({where: {id: session.id}, include: [{model:Model.User, include:[{model:Model.Client}]}]}).then(function(session) {
+					
+					// Create a new session
+					if (session == null)
+						throw new Error('Could not create a session.');
+
+					server.reply({sid: session.sid, user:session.user, client:session.user.client});
+					
+				}).catch(function(error) {
+					server.error(error);			
+				});
+					
+			}).catch(function(error) {
+				server.error(error.message);			
+			});
+				
 		}).catch(function(error) {
 			server.error(error.message);			
 		});

@@ -8,7 +8,7 @@ router.get('/', function (request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 
 		Model.Icon.findAll().then(function(icons) {
 		

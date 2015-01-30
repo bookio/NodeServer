@@ -2,6 +2,8 @@ var Sequelize = require('sequelize');
 var sequelize = require('../sequelize');
 
 module.exports = sequelize.define('users', {
+
+
 	'name': {
 		type          : Sequelize.STRING,
 		defaultValue  : '',

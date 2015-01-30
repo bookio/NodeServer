@@ -8,9 +8,9 @@ router.get('/', function (request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
+	server.authenticate().then(function(session) {
 
-		Model.Client.findAll({where: {id: currentuser.client_id}}).then(function(clients) {
+		Model.Client.findAll({where: {id: session.client_id}}).then(function(clients) {
 			server.reply(clients);
 
 		}).catch(function(error) {
@@ -27,8 +27,8 @@ router.get('/:id', function (request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
-		Model.Client.findOne({where: {id: currentuser.client_id, id:request.params.id}}).then(function(client) {
+	server.authenticate().then(function(session) {
+		Model.Client.findOne({where: {id: session.client_id, id:request.params.id}}).then(function(client) {
 			if (client == null)
 				throw new Error(sprintf('Client with id %s not found.', request.params.id));
 
@@ -50,8 +50,8 @@ router.put('/:id', function (request, response) {
 
 	var server = new Server(request, response);
 
-	server.authenticate().then(function(currentuser) {
-		Model.Client.update(request.body, {returning: true, where: {id:currentuser.client_id, id:request.params.id}}).then(function(data) {
+	server.authenticate().then(function(session) {
+		Model.Client.update(request.body, {returning: true, where: {id:session.client_id, id:request.params.id}}).then(function(data) {
 			
 			if (!data || data.length != 2)
 				throw new Error('Invalid results.');
@@ -78,15 +78,10 @@ router.delete('/:id', function(request, response) {
 
 	var server = new Server(request, response);
 	
-	server.authenticate().then(function(currentuser) {
 
-		Model.Client.destroy({where: {id:request.params.id}}).then(function() {
-			server.reply(null);
+	Model.Client.destroy({where: {id:request.params.id}, cascade:true}).then(function() {
+		server.reply(null);
 
-		}).catch(function(error) {
-			server.error(error);
-		});
-		
 	}).catch(function(error) {
 		server.error(error);
 	});
