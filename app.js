@@ -187,9 +187,7 @@ app.get('/login', function (request, response) {
 		var username = credentials[0];
 		var password = credentials[1];
 		
-		var query = {};
-		
-		query = {
+		var query = {
 			where: Sequelize.or(
 				{name: username},
 				{username: username}
