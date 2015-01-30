@@ -19,25 +19,30 @@ Model.User.belongsTo(Model.Client, {foreignKey: 'client_id', onDelete: 'CASCADE'
 Model.User.hasOne(Model.Session, {foreignKey: 'user_id'});
 
 
-Model.Customer.belongsTo(Model.Client, {foreignKey: 'client_id', onDelete: 'CASCADE', hooks:true});
+Model.Customer.belongsTo(Model.Client, {foreignKey: 'client_id'});
 
-Model.Setting.belongsTo(Model.Client, {foreignKey: 'client_id', onDelete: 'CASCADE', hooks:true});
+Model.Setting.belongsTo(Model.Client, {foreignKey: 'client_id'});
 
-Model.Schedule.belongsTo(Model.Client, {foreignKey: 'client_id', onDelete: 'CASCADE', hooks:true});
+Model.Schedule.belongsTo(Model.Client, {foreignKey: 'client_id'});
+
+Model.Group.belongsTo(Model.Client, {foreignKey: 'client_id'});
+
+Model.Icon.hasMany(Model.Rental, {foreignKey: 'icon_id'});
 
 
-Model.Session.belongsTo(Model.User, {foreignKey: 'user_id', onDelete: 'CASCASE', hooks:true});
+Model.Session.belongsTo(Model.User, {foreignKey: 'user_id'});
 
-Model.Category.belongsTo(Model.Client, {foreignKey: 'client_id', onDelete: 'CASCADE', hooks:true});
+Model.Category.belongsTo(Model.Client, {foreignKey: 'client_id'});
 Model.Category.hasMany(Model.Rental, {foreignKey: 'category_id'});
 
-Model.Rental.belongsTo(Model.Client, {foreignKey: 'client_id', onDelete: 'CASCADE', hooks:true});
-Model.Rental.hasMany(Model.Reservation, {foreignKey: 'rental_id'});
+Model.Rental.belongsTo(Model.Client, {foreignKey: 'client_id'});
 Model.Rental.belongsTo(Model.Category, {foreignKey: 'category_id'});
+Model.Rental.belongsTo(Model.Icon, {foreignKey: 'icon_id'});
+Model.Rental.hasMany(Model.Reservation, {foreignKey: 'rental_id'});
 
-Model.Reservation.belongsTo(Model.Client, {foreignKey: 'client_id', onDelete: 'CASCADE', hooks:true});
-Model.Reservation.belongsTo(Model.Rental, {foreignKey: 'rental_id', onDelete: 'CASCADE', hooks:true});
-Model.Reservation.belongsTo(Model.Customer, {foreignKey: 'customer_id', onDelete: 'CASCADE', hooks:true});
+Model.Reservation.belongsTo(Model.Client, {foreignKey: 'client_id'});
+Model.Reservation.belongsTo(Model.Rental, {foreignKey: 'rental_id'});
+Model.Reservation.belongsTo(Model.Customer, {foreignKey: 'customer_id'});
 
 
 
@@ -49,7 +54,7 @@ Model.Client.hasMany(Model.User, {foreignKey: 'client_id'});
 Model.Client.hasMany(Model.Setting, {foreignKey: 'client_id'});
 Model.Client.hasMany(Model.Schedule, {foreignKey: 'client_id'});
 Model.Client.hasMany(Model.Session, {foreignKey: 'client_id'});
-//Model.Client.hasMany(Model.Group, {foreignKey: 'client_id'});
+Model.Client.hasMany(Model.Group, {foreignKey: 'client_id'});
 
 
 function sync(options) {
