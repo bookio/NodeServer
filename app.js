@@ -168,7 +168,7 @@ app.get('/login', function (request, response) {
 	var Model = require('./model');
 	var Server = require('./server');
 	var UUID = require('node-uuid');
-	var passwordHash = require('password-hash');
+	var hash = require('password-hash');
 
 	
 	var server = new Server(request, response);
@@ -193,7 +193,7 @@ app.get('/login', function (request, response) {
 			if (user == null)
 				throw new Error('Invalid user name.');
 
-			if (user.password != '' && !passwordHash.verify(password, user.password))
+			if (user.password != '' && !hash.verify(password, user.password))
 				throw new Error('Invalid password.');
 
 				
