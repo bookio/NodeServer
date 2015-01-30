@@ -21,6 +21,13 @@ module.exports = sequelize.define('users', {
 		defaultValue  : '',
 		allowNull     : false
 	},
+
+	'password': {
+		type          : Sequelize.STRING,
+		defaultValue  : '',
+		allowNull     : false
+	},
+	
 	
 	'guest': {
 		type          : Sequelize.INTEGER,

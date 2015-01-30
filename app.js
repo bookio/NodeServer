@@ -168,13 +168,12 @@ app.get('/login', function (request, response) {
 	var Model = require('./model');
 	var Server = require('./server');
 	var UUID = require('node-uuid');
-	
+	var passwordHash = require('password-hash');
+
 	
 	var server = new Server(request, response);
 
 	try {
-		console.log('autg', request.headers.authorization);
-	
 		// Remove the inital "Basic "
 		var authorization = request.headers.authorization.split(' ')[1];
 		
@@ -194,12 +193,15 @@ app.get('/login', function (request, response) {
 			if (user == null)
 				throw new Error('Invalid user name.');
 
+			if (user.password != '' && !passwordHash.verify(password, user.password))
+				throw new Error('Invalid password.');
+
 				
 			Model.Session.findOne({where: {user_id: user.id}, include: [{model:Model.User, include:[{model:Model.Client}]}]}).then(function(session) {
 				
 				// Create a new session
 				if (session == null) {
-					Model.Session.create({user_id:user.id, sid:UUID.v1()}).then(function() {
+					Model.Session.create({user_id:user.id, sid:UUID.v1(), client_id:user.client_id}).then(function() {
 						Model.Session.findOne({where: {user_id: user.id}, include: [{model:Model.User, include:[{model:Model.Client}]}]}).then(function(session) {
 
 							if (session == null)

@@ -51,9 +51,14 @@ router.put('/:section/:name', function (request, response) {
 			
 			if (setting != null) {
 
-				extend(true, setting.value, request.body);
+				var value = {};
+				extend(true, value, setting.value);
+				extend(true, value, request.body);
 				
-				setting.save().then(function( setting){
+				setting.value = value;
+				
+				setting.save({value:value}).then(function(setting){
+
 					server.reply(setting.value);
 					
 				}).catch(function(error){
@@ -62,7 +67,7 @@ router.put('/:section/:name', function (request, response) {
 				});
 			}
 			else {
-				Model.Setting.create().then(function(setting){
+				Model.Setting.create({client_id:session.client_id, name:request.params.name, section:request.params.section, value:request.body}).then(function(setting){
 					server.reply(setting.value);
 					
 				}).catch(function(error){

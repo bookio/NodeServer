@@ -3,24 +3,7 @@ var sprintf = require('../sprintf');
 var Server  = require('../server');
 var Model   = require('../model');
 var uuid    = require('node-uuid');
-/*
-			session = current_session
-			
-			user = session.user.client.users.find_by_guest(true)
-			
-			if user == nil 
-				user = session.user.client.users.new
-				user.username = SecureRandom.uuid()
-				user.password = ""
-				user.guest = true
-				user.save!
-			end
-			
-			render :json => user
-		rescue Exception => exception
-			error exception.message, :not_found
-		end
-*/
+var passwordHash = require('password-hash');
 
 router.get('/guest', function (request, response) {
 
@@ -111,6 +94,9 @@ router.post('/', function (request, response) {
 		// Attach it to my client
 		user.client_id = session.client_id;
 		
+		if (request.body.password != undefined)
+			user.password = passwordHash.generate(request.body.password);
+		
 		// Save it
 		user.save().then(function(user) {
 		
@@ -131,9 +117,17 @@ router.post('/', function (request, response) {
 router.put('/:id', function (request, response) {
 
 	var server = new Server(request, response);
+	var extend = require('extend');
 
 	server.authenticate().then(function(session) {
-		Model.User.update(request.body, {returning: true, where: {client_id:session.client_id, id:request.params.id}}).then(function(data) {
+
+		var attributes = {};
+		extend(true, attributes, request.body);
+
+		if (attributes.password && attributes.password != '')
+			attributes.password = passwordHash.generate(attributes.password);
+				
+		Model.User.update(attributes, {returning: true, where: {client_id:session.client_id, id:request.params.id}}).then(function(data) {
 			
 			if (!data || data.length != 2)
 				throw new Error('Invalid results.');
