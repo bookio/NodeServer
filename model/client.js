@@ -48,7 +48,14 @@ module.exports = sequelize.define('clients', {
 		type          : Sequelize.STRING,
 		defaultValue  : '',
 		allowNull     : false
+	},
+	'data': {
+		type          : Sequelize.JSON,
+		defaultValue  : {},
+		allowNull     : false
 	}
+
+
 }, { 
 	updatedAt: 'updated_at', 
 	createdAt: 'created_at'

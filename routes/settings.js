@@ -22,6 +22,66 @@ router.get('/', function (request, response) {
 	
 });
 
+
+router.get('/:section/:name', function (request, response) {
+
+	var server = new Server(request, response);
+
+	server.authenticate().then(function(session) {
+		Model.Setting.findOne({where: {client_id: session.client_id, section:request.params.section,  name:request.params.name }}).then(function(setting) {
+			server.reply(setting == {} ? {} : setting.value);
+		
+		}).catch(function(error) {
+			server.error(error);
+		});
+		
+	}).catch(function(error) {
+		server.error(error);
+	});
+	
+});
+
+router.put('/:section/:name', function (request, response) {
+
+	var server = new Server(request, response);
+	var extend = require('extend');
+	
+	server.authenticate().then(function(session) {
+		Model.Setting.findOne({where: {client_id: session.client_id, section:request.params.section, name:request.params.name }}).then(function(setting) {
+			
+			if (setting != null) {
+
+				extend(true, setting.value, request.body);
+				
+				setting.save().then(function( setting){
+					server.reply(setting.value);
+					
+				}).catch(function(error){
+					server.error(error);
+					
+				});
+			}
+			else {
+				Model.Setting.create().then(function(setting){
+					server.reply(setting.value);
+					
+				}).catch(function(error){
+					server.error(error);
+					
+				});
+			}
+		
+		}).catch(function(error) {
+			server.error(error);
+		});
+		
+	}).catch(function(error) {
+		server.error(error);
+	});
+	
+});
+
+
 router.get('/:id', function (request, response) {
 
 	var server = new Server(request, response);

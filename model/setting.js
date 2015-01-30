@@ -14,7 +14,7 @@ module.exports = sequelize.define('settings', {
 		allowNull     : false
 	},
 	'value': {
-		type          : Sequelize.BLOB,
+		type          : Sequelize.JSON,
 		defaultValue  : null,
 		allowNull     : true
 	}
