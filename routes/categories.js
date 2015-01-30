@@ -89,7 +89,7 @@ router.post('/', function (request, response) {
 		
 	server.authenticate().then(function(session) {
 
-		var category = User.build(request.body);
+		var category = Model.Category.build(request.body);
 		
 		category.client_id = session.client_id;
 		

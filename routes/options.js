@@ -47,5 +47,31 @@ router.get('/:id', function (request, response) {
 });
 
 
+router.post('/', function (request, response) {
+
+	var server = new Server(request, response);
+		
+	server.authenticate().then(function(session) {
+
+		var option = Model.Option.build(request.body);
+		
+		option.client_id = session.client_id;
+		
+		option.save().then(function(option) {
+		
+			server.reply(option);
+		
+		}).catch(function(error){
+			server.error(error);
+			
+		});
+		
+	}).catch(function(error) {
+		server.error(error);
+	});
+	
+
+});
+
 module.exports = router;
 

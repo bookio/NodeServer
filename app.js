@@ -58,47 +58,7 @@ app.get('/logout', function (request, response) {
 
 });
 
-/*
-	def signup
-	begin
-		credentials = credentials()
-		
-		username = credentials[:username]
-		password = credentials[:password]
-		
-		user = User.find_by_username(username)
-		
-		if user == nil
-			ActiveRecord::Base.transaction do        
-				client = Client.new
-				client.name = "Bookio"
-				client.save!
-				
-				user = client.users.new
-				user.name     = username
-				user.username = username
-				user.email    = username
-				user.password = password   
-				user.save!
-			end
-		end
-		
-		session = Session.find_by_user_id(user.id)
-		
-		if session == nil
-			session = Session.new 
-			session.user = user 
-			session.save
-		end
-		
-		render :json => {:sid => session.sid, :client => session.user.client, :user => session.user}
-		
-		rescue Exception => exception
-			error exception.message, :not_found
-		end
-	end
 
-*/
 app.get('/signup', function (request, response) {
 
 	var Model = require('./model');
@@ -131,7 +91,7 @@ app.get('/signup', function (request, response) {
 					return user;
 
 				return sequelize.transaction(function(t){
-					return Model.Client.create({name:'XXX'}, {transaction:t}).then(function(client) {
+					return Model.Client.create({name:'Bookio'}, {transaction:t}).then(function(client) {
 						
 						var attrs = {};					
 						attrs.username  = username;
