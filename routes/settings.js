@@ -23,6 +23,33 @@ router.get('/', function (request, response) {
 });
 
 
+router.get('/:section', function (request, response) {
+
+	var server = new Server(request, response);
+
+	server.authenticate().then(function(session) {
+		Model.Setting.findAll({where: {client_id: session.client_id, section:request.params.section}}).then(function(settings) {
+			
+			var names = {};
+			
+			for (var index in settings) {
+				var setting = settings[index];
+				
+				names[setting.name] = setting.value;
+			}
+			
+			server.reply(names);
+		
+		}).catch(function(error) {
+			server.error(error);
+		});
+		
+	}).catch(function(error) {
+		server.error(error);
+	});
+	
+});
+
 router.get('/:section/:name', function (request, response) {
 
 	var server = new Server(request, response);
