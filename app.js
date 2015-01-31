@@ -7,6 +7,14 @@ var sequelize = require('./sequelize.js');
 var Sequelize = require('sequelize');
 
 
+
+/*
+var session = require('express-session');
+ 
+app.use(session({secret: 'keyboard cat', resave: false, saveUninitialized: true}));
+*/
+
+
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({ extended: false }))

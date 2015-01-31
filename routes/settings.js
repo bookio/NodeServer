@@ -54,6 +54,7 @@ router.get('/:section/:name', function (request, response) {
 
 	var server = new Server(request, response);
 
+
 	server.authenticate().then(function(session) {
 		Model.Setting.findOne({where: {client_id: session.client_id, section:request.params.section,  name:request.params.name }}).then(function(setting) {
 			server.reply(setting == {} ? {} : setting.value);
