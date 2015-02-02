@@ -3,15 +3,6 @@ var sequelize = require('../sequelize.js');
 
 module.exports = sequelize.define('schedules', {
 
-	'entity': {
-		type          : Sequelize.STRING,
-		defaultValue  : '',
-		allowNull     : false
-	},
-	'entity_id': {
-		type          : Sequelize.INTEGER,
-		allowNull     : false
-	},
 	'tag': {
 		type          : Sequelize.STRING,
 		defaultValue  : '',

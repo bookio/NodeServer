@@ -24,10 +24,12 @@ Model.Customer.belongsTo(Model.Client, {foreignKey: 'client_id'});
 Model.Setting.belongsTo(Model.Client, {foreignKey: 'client_id'});
 
 Model.Schedule.belongsTo(Model.Client, {foreignKey: 'client_id'});
+Model.Schedule.belongsTo(Model.Option, {foreignKey: 'option_id'});
 
 Model.Group.belongsTo(Model.Client, {foreignKey: 'client_id'});
 
 Model.Option.belongsTo(Model.Client, {foreignKey: 'client_id'});
+Model.Option.hasMany(Model.Schedule, {foreignKey: 'option_id'});
 
 
 Model.Icon.hasMany(Model.Rental, {foreignKey: 'icon_id'});

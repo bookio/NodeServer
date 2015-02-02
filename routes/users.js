@@ -11,13 +11,13 @@ router.get('/guest', function (request, response) {
 	
 	server.authenticate().then(function(session) {
 
-		Model.User.findOne({where: {client_id: session.client_id, guest:1}}).then(function(user) {
+		Model.User.findOne({where: {client_id: session.client_id, status:1}}).then(function(user) {
 		
 			if (user == null) {
 				var attributes = {};
 				attributes.username = uuid.v1();
 				attributes.status = 1;
-				attributes.name = 'Guest';
+				attributes.name = 'Guest user';
 				attributes.client_id = session.client_id;
 				
 				Model.User.create(attributes).then(function(user) {

@@ -22,7 +22,6 @@ module.exports = sequelize.define('users', {
 		allowNull     : false
 	},
 	
-	
 	'status': {
 		type          : Sequelize.INTEGER,
 		defaultValue  : 0,
