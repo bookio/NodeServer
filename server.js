@@ -18,7 +18,7 @@ module.exports = function(request, response) {
 		else
 			text = error;
 		console.log('reply:', error);
-		response.status(404).json({error:text});	
+		response.status(404).send(text);	
 	}
 	
 	self.reply = function(data) {

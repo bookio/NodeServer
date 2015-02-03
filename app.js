@@ -109,16 +109,10 @@ app.get('/signup', function (request, response) {
 						
 						return Model.User.create(attrs, {transaction:t}).then(function(user){
 							return user;
-						});
-						
-					}).catch(function(error){
-						throw new Error(error.message);
-					});
-					
-				});
 
-				
-				
+						});
+					});
+				});
 			});
 			
 		}
@@ -137,9 +131,9 @@ app.get('/signup', function (request, response) {
 
 
 		getUser(username).then(function(user) {
-			getSession(user).then(function(session) {
+			return getSession(user).then(function(session) {
 
-				Model.Session.findOne({where: {id: session.id}, include: [{model:Model.User, include:[{model:Model.Client}]}]}).then(function(session) {
+				return Model.Session.findOne({where: {id: session.id}, include: [{model:Model.User, include:[{model:Model.Client}]}]}).then(function(session) {
 					
 					// Create a new session
 					if (session == null)
@@ -147,16 +141,11 @@ app.get('/signup', function (request, response) {
 
 					server.reply({sid: session.sid, user:session.user, client:session.user.client});
 					
-				}).catch(function(error) {
-					server.error(error);			
 				});
-					
-			}).catch(function(error) {
-				server.error(error.message);			
 			});
 				
 		}).catch(function(error) {
-			server.error(error.message);			
+			server.error(error);			
 		});
 	
 	}

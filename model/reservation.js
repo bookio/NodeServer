@@ -1,5 +1,5 @@
 var Sequelize = require('sequelize');
-var sequelize = require('../sequelize.js');
+var sequelize = require('../sequelize');
 
 var Reservation = module.exports = sequelize.define('reservations', {
 
