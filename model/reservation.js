@@ -35,6 +35,17 @@ var Reservation = module.exports = sequelize.define('reservations', {
 		type          : Sequelize.INTEGER,
 		defaultValue  : 0,
 		allowNull     : false
+	},
+	
+	'arrived': {
+		type          : Sequelize.INTEGER,
+		defaultValue  : 0,
+		allowNull     : false
+	},
+	'price': {
+		type          : Sequelize.FLOAT,
+		defaultValue  : null,
+		allowNull     : true
 	}
 
 
@@ -54,6 +65,9 @@ Reservation.beforeValidate(function(reservation, options) {
 
 	if (typeof reservation.transferred == 'boolean')
 		reservation.transferred = reservation.transferred + 0;
+
+	if (typeof reservation.arrived == 'boolean')
+		reservation.arrived = reservation.arrived + 0;
 
 	return sequelize.Promise.resolve(reservation);
 })
