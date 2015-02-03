@@ -61,6 +61,24 @@ function scheduleToRecords(schedules, option) {
 	
 }
 
+
+function destroySchedules(schedules, options) {
+
+	if (schedules.length > 0)
+		return Model.Schedule.destroy(options);
+	else
+		return sequelize.Promise.resolve();
+
+}
+
+function insertSchedules(schedules, options) {
+	if (schedules.length > 0)
+		return Model.Schedule.bulkCreate(schedules, options);
+	else
+		return sequelize.Promise.resolve([]);
+}
+
+		
 router.get('/:id', function (request, response) {
 
 	var server = new Server(request, response);
@@ -100,17 +118,30 @@ router.post('/', function (request, response) {
 		
 	server.authenticate().then(function(session) {
 
-		var option = Model.Option.build(request.body);
-		
-		option.client_id = session.client_id;
-		
-		option.save().then(function(option) {
-		
-			server.reply(option);
-		
-		}).catch(function(error){
-			server.error(error);
+		var attributes = request.body;
+		attributes.client_id = session.client_id;
+
+		sequelize.transaction(function(tx) {
+
+			return Model.Option.create(attributes).then(function(option) {
+
+				// Convert to records
+				var records = scheduleToRecords(attributes.schedules, option);
+				
+				return insertSchedules(records, {transaction:tx}).then(function(records){
+					
+					option.dataValues.schedules = recordsToSchedules(records);
+					
+					return option;							
+					
+				});
+			});		
+
+		}).then(function(result){
+			server.reply(result);
 			
+		}).catch(function(error) {
+			server.error(error);
 		});
 		
 	}).catch(function(error) {
@@ -127,24 +158,6 @@ router.put('/:id', function (request, response) {
 	var server = new Server(request, response);
 
 	server.authenticate().then(function(session) {
-	
-	
-		function destroySchedules(schedules, options) {
-			if (schedules.length > 0)
-				return Model.Schedule.destroy(options);
-			else
-				return sequelize.Promise.resolve();
-
-		}
-		
-		function insertSchedules(schedules, options) {
-
-
-			if (schedules.length > 0)
-				return Model.Schedule.bulkCreate(schedules, options);
-			else
-				return sequelize.Promise.resolve([]);
-		}
 		
 		sequelize.transaction(function(t) {
 		
