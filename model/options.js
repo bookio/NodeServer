@@ -1,7 +1,8 @@
 var Sequelize = require('sequelize');
-var sequelize = require('../sequelize.js');
+var sequelize = require('../sequelize');
+var sprintf   = require('../sprintf');
 
-module.exports = sequelize.define('options', {
+var Model = module.exports = sequelize.define('options', {
 
 	'name': {
 		type          : Sequelize.STRING,
@@ -41,5 +42,29 @@ module.exports = sequelize.define('options', {
 
 }, { 
 	updatedAt: 'updated_at', 
-	createdAt: 'created_at'
+	createdAt: 'created_at',
+	
 });
+
+
+
+Model.afterDestroy(function(option, options, fn) {
+	
+	// UPDATE rentals SET option_ids = array_remove(option_ids, 5) WHERE 5 = ANY (option_ids)
+	var sql = sprintf('UPDATE rentals SET option_ids = array_remove(option_ids, %d) WHERE %d = ANY (option_ids)', option.id, option.id);
+
+	return sequelize.query(sql);	
+});
+
+/*
+
+Model.afterBulkDestroy(function(options) {
+	
+	console.log('*******************************afterBulkDestroy', options);
+	// UPDATE rentals SET option_ids = array_remove(option_ids, 5) WHERE 5 = ANY (option_ids)
+	//var sql = sprintf('UPDATE rentals SET option_ids = array_remove(option_ids, %d) WHERE %d = ANY (option_ids)', option.id, option.id);
+
+	return sequelize.Promise.resolve();
+});
+
+*/

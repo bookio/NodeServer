@@ -271,7 +271,7 @@ router.delete('/:id', function(request, response) {
 	
 	server.authenticate().then(function(session) {
 
-		Model.Option.destroy({where: {client_id:session.client_id, id:request.params.id}}).then(function(data) {
+		Model.Option.destroy({where: {client_id:session.client_id, id:request.params.id}, individualHooks: true}).then(function(data) {
 			server.reply(null);
 
 		}).catch(function(error) {

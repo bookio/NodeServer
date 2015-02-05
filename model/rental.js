@@ -57,6 +57,11 @@ module.exports = sequelize.define('rentals', {
 		type          : Sequelize.JSON,
 		defaultValue  : {},
 		allowNull     : false
+	},
+	'image': {
+		type          : Sequelize.TEXT,
+		defaultValue  : '',
+		allowNull     : false
 	}
 	
 	
