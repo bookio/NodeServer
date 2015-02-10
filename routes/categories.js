@@ -36,12 +36,45 @@ router.post('/query', function (request, response) {
 });
 
 
+router.get('/active', function (request, response) {
+
+	var server = new Server(request, response);
+		
+	server.authenticate().then(function(session) {
+	
+		var query = {
+			where: {client_id: session.client_id},
+			include: [{
+				model: Model.Rental,
+				where: {category_id: {ne:null}, available: {ne:0}},
+				required: true,
+				attributes: []
+			}]
+		};
+
+		Category.findAll(query).then(function(data) {
+
+			server.reply(data);
+
+
+		}).catch(function(error) {
+			server.error(error);
+		});
+
+		
+	}).catch(function(error) {
+		server.error(error);
+	});
+	
+});
 
 router.get('/', function (request, response) {
 
 	var server = new Server(request, response);
 		
 	server.authenticate().then(function(session) {
+	
+
 		Category.findAll({where: {client_id: session.client_id}}).then(function(data) {
 			server.reply(data);
 

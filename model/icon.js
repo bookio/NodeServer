@@ -7,13 +7,8 @@ module.exports = sequelize.define('icons', {
 		type          : Sequelize.STRING,
 		defaultValue  : '',
 		allowNull     : false
-	},
-
-	'image': {
-		type          : Sequelize.STRING,
-		defaultValue  : '',
-		allowNull     : false
 	}
+
 
 }, { 
 	updatedAt: 'updated_at', 

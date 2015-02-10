@@ -112,11 +112,14 @@ router.post('/query', function (request, response) {
 		
 	server.authenticate().then(function(session) {
 
-		var query = {
-			where: Sequelize.and({client_id: session.client_id}, eval(request.body))	
-		};
+		var options = request.body;
+		
+		if (options.where)
+			options.where = Sequelize.and({client_id: session.client_id}, options.where);
+			
+		console.log(options.where);
 
-		Model.Rental.findAll(query).then(function(rentals) {
+		Model.Rental.findAll(options).then(function(rentals) {
 		
 			server.reply(rentals);
 		
@@ -135,6 +138,8 @@ router.post('/query', function (request, response) {
 router.get('/', function (request, response) {
 
 	var server = new Server(request, response);
+	
+
 	
 	server.authenticate().then(function(session) {
 
