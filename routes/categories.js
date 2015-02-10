@@ -10,6 +10,30 @@ var Category = Model.Category;
 var Server   = require('../server.js');
 
 
+router.post('/query', function (request, response) {
+
+	var server = new Server(request, response);
+		
+	server.authenticate().then(function(session) {
+
+		var query = {
+			where: Sequelize.and({client_id: session.client_id}, eval(request.body))	
+		};
+
+		Model.Category.findAll(query).then(function(result) {
+		
+			server.reply(result);
+		
+		}).catch(function(error) {
+			server.error(error);
+			
+		});
+		
+	}).catch(function(error) {
+		server.error(error);
+	});	
+
+});
 
 
 

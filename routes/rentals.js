@@ -1,7 +1,8 @@
-var router  = require('express').Router();
-var sprintf = require('../sprintf');
-var Server  = require('../server');
-var Model   = require('../model');
+var router    = require('express').Router();
+var sprintf   = require('../sprintf');
+var Server    = require('../server');
+var Model     = require('../model');
+var Sequelize = require('sequelize')
 
 /*
 
@@ -105,6 +106,31 @@ router.post('/generate/:what/:count', function (request, response) {
 });
 
 
+router.post('/query', function (request, response) {
+
+	var server = new Server(request, response);
+		
+	server.authenticate().then(function(session) {
+
+		var query = {
+			where: Sequelize.and({client_id: session.client_id}, eval(request.body))	
+		};
+
+		Model.Rental.findAll(query).then(function(rentals) {
+		
+			server.reply(rentals);
+		
+		}).catch(function(error) {
+			server.error(error);
+			
+		});
+		
+	}).catch(function(error) {
+		server.error(error);
+	});	
+
+});
+
 
 router.get('/', function (request, response) {
 
@@ -114,6 +140,8 @@ router.get('/', function (request, response) {
 
 		Model.Rental.findAll({where: {client_id: session.client_id}}).then(function(rental) {
 		
+			console.log(request.body);
+			
 			server.reply(rental);
 			
 		}).catch(function(error) {

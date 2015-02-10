@@ -5,6 +5,32 @@ var Model     = require('../model');
 var sequelize = require('../sequelize');
 
  
+router.post('/query', function (request, response) {
+
+	var server = new Server(request, response);
+		
+	server.authenticate().then(function(session) {
+
+		var query = {
+			where: Sequelize.and({client_id: session.client_id}, eval(request.body))	
+		};
+
+		Model.Option.findAll(query).then(function(result) {
+		
+			server.reply(result);
+		
+		}).catch(function(error) {
+			server.error(error);
+			
+		});
+		
+	}).catch(function(error) {
+		server.error(error);
+	});	
+
+});
+ 
+ 
 router.get('/', function (request, response) {
 
 	var server = new Server(request, response);
