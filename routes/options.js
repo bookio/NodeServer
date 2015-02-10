@@ -3,34 +3,40 @@ var sprintf   = require('../sprintf');
 var Server    = require('../server');
 var Model     = require('../model');
 var sequelize = require('../sequelize');
+var Sequelize = require('sequelize');
 
  
-router.post('/query', function (request, response) {
+ 
+router.get('/rental/:id', function (request, response) {
 
 	var server = new Server(request, response);
-		
+	
 	server.authenticate().then(function(session) {
 
-		var query = {
-			where: Sequelize.and({client_id: session.client_id}, eval(request.body))	
-		};
+		//  select * from "options" where id = ANY(ARRAY[(select option_ids from rentals where id=186)])
 
-		Model.Option.findAll(query).then(function(result) {
+		var sql = sprintf('"options"."id" = ANY(ARRAY[(select option_ids from rentals where id=%d)])', parseInt(request.params.id));
+
+		var query = {
+			where:
+				sequelize.and({client_id: session.client_id}, sql)
+		};
 		
-			server.reply(result);
-		
+		Model.Option.findAll(query).then(function(data) {
+			server.reply(data);
+
+
 		}).catch(function(error) {
 			server.error(error);
-			
 		});
 		
 	}).catch(function(error) {
 		server.error(error);
-	});	
-
+	});
+	
 });
  
- 
+
 router.get('/', function (request, response) {
 
 	var server = new Server(request, response);

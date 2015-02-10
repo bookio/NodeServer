@@ -4,6 +4,33 @@ var Server    = require('../server');
 var Model     = require('../model');
 var Sequelize = require('sequelize')
 
+
+
+router.get('/no_category', function (request, response) {
+
+	var server = new Server(request, response);
+	
+	
+	server.authenticate().then(function(session) {
+
+		var query = {
+			where: {client_id: session.client_id, category_id:null, available:{ne:0}},
+		};
+
+		Model.Rental.findAll(query).then(function(rental) {
+		
+			server.reply(rental);
+			
+		}).catch(function(error) {
+			server.error(error);
+		});
+		
+	}).catch(function(error) {
+		server.error(error);
+	});
+	
+});
+
 /*
 
 	def generate
