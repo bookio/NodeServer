@@ -142,10 +142,8 @@ router.post('/query', function (request, response) {
 		var options = request.body;
 		
 		if (options.where)
-			options.where = Sequelize.and({client_id: session.client_id}, options.where);
+			options.where = Sequelize.and({client_id: session.client_id}, options);
 			
-		console.log(options.where);
-
 		Model.Rental.findAll(options).then(function(rentals) {
 		
 			server.reply(rentals);
