@@ -3,8 +3,34 @@ var sprintf   = require('../sprintf');
 var Server    = require('../server');
 var Model     = require('../model');
 var sequelize = require('../sequelize');
-var Sequelize = require('sequelize');
 
+ 
+router.get('/category/:id', function (request, response) {
+
+	var server = new Server(request, response);
+	
+	server.authenticate().then(function(session) {
+
+		var sql = sprintf('"options"."id" IN (SELECT DISTINCT UNNEST(option_ids) FROM rentals WHERE category_id = %d)', parseInt(request.params.id));
+
+		var query = {
+			where:
+				sequelize.and({client_id: session.client_id}, sql)
+		};
+		
+		Model.Option.findAll(query).then(function(data) {
+			server.reply(data);
+
+
+		}).catch(function(error) {
+			server.error(error);
+		});
+		
+	}).catch(function(error) {
+		server.error(error);
+	});
+	
+});
  
  
 router.get('/rental/:id', function (request, response) {
