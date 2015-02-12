@@ -68,7 +68,7 @@ router.get('/', function (request, response) {
 	var server = new Server(request, response);
 	
 	server.authenticate().then(function(session) {
-		Model.Option.findAll({where: {client_id: session.client_id}}).then(function(data) {
+		Model.Option.findAll({where: {client_id: session.client_id}, include: [{model:Model.Schedule, attributes:['tag','begin_at','end_at']}]}).then(function(data) {
 			server.reply(data);
 
 
@@ -82,59 +82,8 @@ router.get('/', function (request, response) {
 	
 });
 
-function recordsToSchedules(records) {
-	var schedules = {};
-	
-	if (records != undefined) {
-		records.forEach(function(item) {
-	
-			if (schedules[item.tag] == undefined)
-				schedules[item.tag] = [];
-				
-			schedules[item.tag].push({begin_at: item.begin_at, end_at:item.end_at});
-		});	
-		
-	}
-	
-	return schedules;
-}
-
-function scheduleToRecords(schedules, option) {
-
-	var records = [];
-	
-	if (schedules != undefined) {
-		// Convert to database format			
-		for (var tag in schedules) {
-			var items = schedules[tag];
-			
-			for (var index in items) {
-				var item = items[index];
-				records.push({tag:tag, begin_at:item.begin_at, end_at:item.end_at, client_id:option.client_id, option_id:option.id});
-			}
-		}
-	}
-	
-	return records;
-	
-}
 
 
-function destroySchedules(schedules, options) {
-
-	if (schedules.length > 0)
-		return Model.Schedule.destroy(options);
-	else
-		return sequelize.Promise.resolve();
-
-}
-
-function insertSchedules(schedules, options) {
-	if (schedules.length > 0)
-		return Model.Schedule.bulkCreate(schedules, options);
-	else
-		return sequelize.Promise.resolve([]);
-}
 
 		
 router.get('/:id', function (request, response) {
@@ -143,21 +92,12 @@ router.get('/:id', function (request, response) {
 	
 	server.authenticate().then(function(session) {
 
-		Model.Option.findOne({where: {client_id: session.client_id, id:request.params.id}, include: [{model:Model.Schedule}]}).then(function(option) {
+		Model.Option.findOne({where: {client_id: session.client_id, id:request.params.id}, include: [{model:Model.Schedule, attributes:['tag','begin_at','end_at']}]}).then(function(option) {
 			if (option == null) {
 				server.error(sprintf('Option with id %s not found.', request.params.id));
 				return null;
 			}
-			
-			option = option.dataValues;
-			
-			var schedules = recordsToSchedules(option.schedules)
-			
-
-			// Modify the data structure			
-			delete option.schedules;
-			option.schedules = schedules;
-					
+	
 			server.reply(option);
 
 		}).catch(function(error) {
@@ -183,12 +123,25 @@ router.post('/', function (request, response) {
 
 			return Model.Option.create(attributes).then(function(option) {
 
-				// Convert to records
-				var records = scheduleToRecords(attributes.schedules, option);
-				
-				return insertSchedules(records, {transaction:tx}).then(function(records){
 					
-					option.dataValues.schedules = recordsToSchedules(records);
+				attributes.schedules = attributes.schedules == undefined ? [] : attributes.schedules;
+
+				attributes.schedules.forEach(function(item) {
+					item.option_id = option.id;
+					item.client_id = option.client_id;
+				});
+
+				return Model.Schedule.bulkCreate(attributes.schedules, {transaction:tx}).then(function(schedules){
+					
+					schedules.forEach(function(item) {
+						delete item.dataValues.option_id;
+						delete item.dataValues.client_id;
+						delete item.dataValues.id;
+						delete item.dataValues.created_at;
+						delete item.dataValues.updated_at;
+					});
+
+					option.dataValues.schedules = schedules;
 					
 					return option;							
 					
@@ -229,13 +182,27 @@ router.put('/:id', function (request, response) {
 					throw new Error('Rental not found.');
 					
 				var option = data[1][0];
-				var schedules = scheduleToRecords(request.body.schedules, option);
+				var schedules = request.body.schedules == undefined ? [] : request.body.schedules;
 	
-				return destroySchedules(schedules, {where: {client_id:option.client_id, option_id:option.id}, transaction:t}).then(function(){
+				schedules.forEach(function(item) {
+					item.option_id = option.id;
+					item.client_id = option.client_id;
+				});
+				
+				return Model.Schedule.destroy({where: {client_id:option.client_id, option_id:option.id}, transaction:t}).then(function(){
 
-					return insertSchedules(schedules, {transaction:t}).then(function(schedules){
+					return Model.Schedule.bulkCreate(schedules, {transaction:t}).then(function(schedules){
 						
-						option.dataValues.schedules = recordsToSchedules(schedules);
+						schedules.forEach(function(item) {
+							delete item.dataValues.option_id;
+							delete item.dataValues.client_id;
+							delete item.dataValues.id;
+							delete item.dataValues.created_at;
+							delete item.dataValues.updated_at;
+						});
+
+						option.dataValues.schedules = schedules;
+
 						
 						return option;							
 						
@@ -259,77 +226,17 @@ router.put('/:id', function (request, response) {
 
 });
 
-/*
 
-router.put('/:id', function (request, response) {
-
-	var server = new Server(request, response);
-
-	server.authenticate().then(function(session) {
-		Model.Option.findOne({where: {client_id: session.client_id, id:request.params.id}}).then(function(option) {
-			
-			if (option == null)			
-				server.error(sprintf('Option with ID %s not found.', request.params.id));
-			
-			option = request.body;
-			
-			var result = {};	
-			var schedules = [];
-
-			// Convert to database format			
-			for (var tag in option.schedules) {
-				var items = option.schedules[tag];
-				
-				for (var index in items) {
-					var item = items[index];
-					schedules.push({tag:tag, begin_at:item.begin_at, end_at:item.end_at, client_id:session.client_id, option_id:option.id});
-				}
-
-			}
-			
-			option.
-			//console.log(schedules);
-			console.log(option);
-			
-			result = option;
-			
-			Model.Schedule.destroy({where: {client_id:session.client_id + 1000, option_id:option.id}}).then(function(){
-	
-	
-				console.log('destroy done');
-				
-			}).then(function(){
-				console.log('returning result');
-				server.reply(result);
-				
-
-			}).catch(function(error){
-				server.error(error);
-				
-			});
-
-				
-
-			
-		}).catch(function(error) {
-			server.error(sprintf('Update Option with ID %s failed. %s', request.params.id, error.message));
-		});
-						
-		
-	}).catch(function(error) {
-		server.error(error);
-	});
-	
-});
-*/
 
 router.delete('/:id', function(request, response) {
 
 	var server = new Server(request, response);
 	
 	server.authenticate().then(function(session) {
+			console.log('AAA');
 
 		Model.Option.destroy({where: {client_id:session.client_id, id:request.params.id}, individualHooks: true}).then(function(data) {
+			console.log('XXX');
 			server.reply(null);
 
 		}).catch(function(error) {
