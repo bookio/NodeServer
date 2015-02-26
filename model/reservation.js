@@ -69,5 +69,10 @@ Reservation.beforeValidate(function(reservation, options) {
 	if (typeof reservation.arrived == 'boolean')
 		reservation.arrived = reservation.arrived + 0;
 
+	if (typeof reservation.price == 'string') {
+		reservation.price = parseFloat(reservation.price);
+		reservation.price = isNaN(reservation.price) ? 0 : reservation.price; 
+	}
+
 	return sequelize.Promise.resolve(reservation);
 })
