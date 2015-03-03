@@ -70,8 +70,11 @@ Reservation.beforeValidate(function(reservation, options) {
 		reservation.arrived = reservation.arrived + 0;
 
 	if (typeof reservation.price == 'string') {
-		reservation.price = parseFloat(reservation.price);
-		reservation.price = isNaN(reservation.price) ? 0 : reservation.price; 
+		reservation.price = reservation.price == '' ? null : parseFloat(reservation.price);
+
+		if (isNaN(reservation.price)) {
+			throw new Error("Price must be numeric or NULL.");
+		}
 	}
 
 	return sequelize.Promise.resolve(reservation);
