@@ -233,10 +233,8 @@ router.delete('/:id', function(request, response) {
 	var server = new Server(request, response);
 	
 	server.authenticate().then(function(session) {
-			console.log('AAA');
 
 		Model.Option.destroy({where: {client_id:session.client_id, id:request.params.id}, individualHooks: true}).then(function(data) {
-			console.log('XXX');
 			server.reply(null);
 
 		}).catch(function(error) {

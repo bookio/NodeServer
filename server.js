@@ -18,7 +18,8 @@ module.exports = function(request, response) {
 		else
 			text = error;
 		console.log('reply:', error);
-		response.status(404).send(text);	
+		response.status(error.statusCode == undefined ? 404 : error.statusCode);	
+		response.send(text);	
 	}
 	
 	self.reply = function(data) {

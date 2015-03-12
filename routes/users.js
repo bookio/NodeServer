@@ -1,9 +1,12 @@
-var router  = require('express').Router();
-var sprintf = require('../sprintf');
-var Server  = require('../server');
-var Model   = require('../model');
-var uuid    = require('node-uuid');
+var router       = require('express').Router();
+var uuid         = require('node-uuid');
 var passwordHash = require('password-hash');
+
+var sprintf      = require('../sprintf');
+var Server       = require('../server');
+var Model        = require('../model');
+var sequelize    = require('../sequelize')
+
 
 router.get('/guest', function (request, response) {
 
@@ -125,24 +128,49 @@ router.put('/:id', function (request, response) {
 		var attributes = {};
 		extend(true, attributes, request.body);
 
-		if (attributes.password && attributes.password != '')
-			attributes.password = passwordHash.generate(attributes.password);
-				
-		Model.User.update(attributes, {returning: true, where: {client_id:session.client_id, id:request.params.id}}).then(function(data) {
+		function verifyPassword() {
 			
-			if (!data || data.length != 2)
-				throw new Error('Invalid results.');
+			if (attributes.newpassword == undefined)
+				return sequelize.Promise.resolve();
 
-			if (data[0] != 1)
-				throw new Error('Rental not found.');
+			if (attributes.password == undefined)
+				throw new Error('Must specify password');
+			
+			return Model.User.findOne({where: {client_id: session.client_id, id:request.params.id}}).then(function(user) {
+
+				if (user == null)
+					throw new Error(sprintf('User with id %s not found.', request.params.id));
+
+
+				if (!(user.password == '' && attributes.password == '') && !passwordHash.verify(attributes.password, user.password))  {
+					throw new Error('Invalid password.');
+				}
+					
+				attributes.password = attributes.newpassword == '' ? '' : passwordHash.generate(attributes.newpassword);
 				
-			server.reply(data[1][0]);
+			});
+			
+		}
 
+		verifyPassword().then(function(){
+			Model.User.update(attributes, {returning: true, where: {client_id:session.client_id, id:request.params.id}}).then(function(data) {
+				
+				if (!data || data.length != 2)
+					throw new Error('Invalid results.');
+	
+				if (data[0] != 1)
+					throw new Error('Rental not found.');
+					
+				server.reply(data[1][0]);
+	
+				
+			}).catch(function(error) {
+				server.error(sprintf('Update User with ID %s failed. %s', request.params.id, error.message));
+			});
 			
 		}).catch(function(error) {
-			server.error(sprintf('Update User with ID %s failed. %s', request.params.id, error.message));
+			server.error(error);
 		});
-						
 		
 	}).catch(function(error) {
 		server.error(error);
