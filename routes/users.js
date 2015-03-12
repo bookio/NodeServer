@@ -129,9 +129,12 @@ router.put('/:id', function (request, response) {
 		extend(true, attributes, request.body);
 
 		function verifyPassword() {
-			
-			if (attributes.newpassword == undefined)
+
+			if (attributes.newpassword == undefined || (attributes.password == '' && attributes.newpassword == '')) {
+				delete attributes.password;
+				delete attributes.newpassword;
 				return sequelize.Promise.resolve();
+			}
 
 			if (attributes.password == undefined)
 				throw new Error('Must specify password');
@@ -147,7 +150,7 @@ router.put('/:id', function (request, response) {
 				}
 					
 				attributes.password = attributes.newpassword == '' ? '' : passwordHash.generate(attributes.newpassword);
-				
+				delete attributes.newpassword;
 			});
 			
 		}
