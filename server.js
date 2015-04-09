@@ -17,6 +17,7 @@ module.exports = function(request, response) {
 			text = error.message;
 		else
 			text = error;
+			
 		console.log('reply:', error);
 		response.status(error.statusCode == undefined ? 404 : error.statusCode);	
 		response.send(text);	
@@ -27,23 +28,6 @@ module.exports = function(request, response) {
 		
 	}
 
-
-     
-/*
-	self.authenticate = function() {
-		return Session.findOne({where: {sid: request.headers.authorization}}).then(function(session) {
-			if (session == null)
-				throw new Error('Invalid session ID.');
-
-			return User.findOne({where:{id: session.user_id}}).then(function(user) {
-				if (user == null)
-					throw new Error('Invalid user ID.');
-					
-				return user;
-			});
-		});
-	}
-*/
 
 	self.authenticate = function() {
 		return Session.findOne({where: {sid: request.headers.authorization}}).then(function(session) {

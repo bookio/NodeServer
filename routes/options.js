@@ -68,7 +68,7 @@ router.get('/', function (request, response) {
 	var server = new Server(request, response);
 	
 	server.authenticate().then(function(session) {
-		Model.Option.findAll({where: {client_id: session.client_id}, include: [{model:Model.Schedule, attributes:['tag','begin_at','end_at']}]}).then(function(data) {
+		Model.Option.findAll({where: {client_id: session.client_id}, include: [{model:Model.Schedule, attributes:['tag','slots']}]}).then(function(data) {
 			server.reply(data);
 
 
@@ -92,7 +92,7 @@ router.get('/:id', function (request, response) {
 	
 	server.authenticate().then(function(session) {
 
-		Model.Option.findOne({where: {client_id: session.client_id, id:request.params.id}, include: [{model:Model.Schedule, attributes:['tag','begin_at','end_at']}]}).then(function(option) {
+		Model.Option.findOne({where: {client_id: session.client_id, id:request.params.id}, include: [{model:Model.Schedule, attributes:['tag','slots']}]}).then(function(option) {
 			if (option == null) {
 				server.error(sprintf('Option with id %s not found.', request.params.id));
 				return null;

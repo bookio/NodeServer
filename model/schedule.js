@@ -8,17 +8,12 @@ module.exports = sequelize.define('schedules', {
 		defaultValue  : '',
 		allowNull     : false
 	},
-
-	'begin_at': {
-		type          : Sequelize.DATE,
-		allowNull     : false
-	},
-
-	'end_at': {
-		type          : Sequelize.DATE,
-		allowNull     : false
+	
+	'slots': {
+		type          : Sequelize.ARRAY(Sequelize.INTEGER),
+		defaultValue  : [],
+		allowNull     : true
 	}
-
 
 }, { 
 	updatedAt: 'updated_at', 
