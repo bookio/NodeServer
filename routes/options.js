@@ -131,8 +131,9 @@ router.post('/', function (request, response) {
 					item.client_id = option.client_id;
 					
 					item.slots.sort(function(a, b) {
-						return b - a;
+						return parseInt(a) - parseInt(b);
 					});
+
 				});
 
 				return Model.Schedule.bulkCreate(attributes.schedules, {transaction:tx}).then(function(schedules){
@@ -191,6 +192,11 @@ router.put('/:id', function (request, response) {
 				schedules.forEach(function(item) {
 					item.option_id = option.id;
 					item.client_id = option.client_id;
+					
+					item.slots.sort(function(a, b) {
+						return parseInt(a) - parseInt(b);
+					});
+					
 				});
 				
 				return Model.Schedule.destroy({where: {client_id:option.client_id, option_id:option.id}, transaction:t}).then(function(){
