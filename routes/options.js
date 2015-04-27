@@ -129,6 +129,10 @@ router.post('/', function (request, response) {
 				attributes.schedules.forEach(function(item) {
 					item.option_id = option.id;
 					item.client_id = option.client_id;
+					
+					item.slots.sort(function(a, b) {
+						return b - a;
+					});
 				});
 
 				return Model.Schedule.bulkCreate(attributes.schedules, {transaction:tx}).then(function(schedules){
