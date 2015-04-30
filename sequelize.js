@@ -8,7 +8,7 @@ var sequelize = new Sequelize('dakh54pfbr5h44', 'tngvlsuocnzuzw', 'mShWT2fKPbmoX
 	dialect: 'postgres',
 	port:5432,
 	protocol: 'postgres',
-	timezone: 'UTC',
+	timezone: '+00:00',
 	ssl: true,
 	native: true
 });
