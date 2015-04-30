@@ -31,50 +31,6 @@ router.get('/no_category', function (request, response) {
 	
 });
 
-/*
-
-	def generate
-		begin
-			
-			index = 0
-			count = params[:count].to_i()
-			name  = params[:name]
-			
-			result  = []
-			rentals = current_session.user.client.rentals
-			
-			if rentals.count == 0
-				ActiveRecord::Base.transaction do
-					while index < count do
-					
-						rental = rentals.new()
-						
-						if count <= 1
-							rental.name = name
-						else
-							rental.name = sprintf('%s %d', name, index + 1)
-						end
-						
-						rental.icon_id = 0
-						rental.option_ids = []
-						rental.save
-						
-						index += 1
-	
-						result.push rental
-					end
-				
-				end   	
-			end
-			
-			
-			render :json => result
-		rescue Exception => exception
-			error exception.message, :not_found
-		end
-	
-	end
-*/
 
 router.post('/generate/:what/:count', function (request, response) {
 
@@ -139,6 +95,7 @@ router.post('/query', function (request, response) {
 		
 	server.authenticate().then(function(session) {
 
+		console.log(request.query);
 		var options = {};
 		options.where = Sequelize.and({client_id: session.client_id}, request.body);
 			
