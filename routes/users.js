@@ -98,7 +98,7 @@ router.post('/', function (request, response) {
 		// Attach it to my client
 		user.client_id = session.client_id;
 		
-		if (request.body.password != undefined)
+		if (request.body.password != undefined && request.body.password != '')
 			user.password = passwordHash.generate(request.body.password);
 		
 		// Save it
@@ -130,27 +130,32 @@ router.put('/:id', function (request, response) {
 
 		function verifyPassword() {
 
-			if (attributes.newpassword == undefined || (attributes.password == '' && attributes.newpassword == '')) {
-				delete attributes.password;
-				delete attributes.newpassword;
+			if (attributes.password == undefined) {
 				return sequelize.Promise.resolve();
 			}
 
-			if (attributes.password == undefined)
-				throw new Error('Must specify password');
+			if (request.query.password == undefined)
+				request.query.password = '';
+			
+			console.log(request.query);
 			
 			return Model.User.findOne({where: {client_id: session.client_id, id:request.params.id}}).then(function(user) {
 
 				if (user == null)
 					throw new Error(sprintf('User with id %s not found.', request.params.id));
 
-
-				if (!(user.password == '' && attributes.password == '') && !passwordHash.verify(attributes.password, user.password))  {
-					throw new Error('Invalid password.');
+				if (user.password == '' || user.password == request.query.password) {
+					// OK
 				}
+				else {
+					if (!passwordHash.verify(request.query.password, user.password))  {
+						throw new Error('Invalid password.');
+					}
 					
-				attributes.password = attributes.newpassword == '' ? '' : passwordHash.generate(attributes.newpassword);
-				delete attributes.newpassword;
+				}
+				if (attributes.password != '')
+					attributes.password = passwordHash.generate(attributes.password);
+					
 			});
 			
 		}
