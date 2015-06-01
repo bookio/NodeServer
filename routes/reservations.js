@@ -51,6 +51,9 @@ router.post('/', function (request, response) {
 		
 	server.authenticate().then(function(session) {
 
+
+		console.log('New reservation', request.body);
+		
 		var reservation = Model.Reservation.build(request.body);
 		
 		// Attach it to my client

@@ -89,15 +89,36 @@ router.post('/generate/:what/:count', function (request, response) {
 });
 
 
-router.post('/query', function (request, response) {
+router.get('/query', function (request, response) {
 
 	var server = new Server(request, response);
 		
 	server.authenticate().then(function(session) {
 
 		console.log(request.query);
+
+		var begin_at = new Date(request.query.begin_at);
+		var end_at = new Date(request.query.end_at);
+		var category_id = parseInt(request.query.category_id);
+		
+		if (isNaN(begin_at.getTime()))
+			throw new Error('Need start date.');
+
+		if (isNaN(end_at.getTime()))
+			throw new Error('Need end date.');
+
+		var query = '';
+		
+		query += 'id IN (';
+		query += sprintf('SELECT id FROM rentals WHERE client_id=%d ', session.client_id);
+		query += sprintf('EXCEPT SELECT rental_id FROM reservations WHERE tsrange(begin_at, end_at) && tsrange(\'%s\'::TIMESTAMP, \'%s\'::TIMESTAMP) AND client_id=%d', begin_at.toISOString(), end_at.toISOString(), session.client_id);
+		query += ')';
+
+		if (!isNaN(category_id))
+			query += sprintf(' AND category_id=%d', category_id);
+		
 		var options = {};
-		options.where = Sequelize.and({client_id: session.client_id}, request.body);
+		options.where = [ query ]; //Sequelize.and({client_id: session.client_id}, request.body);
 			
 		Model.Rental.findAll(options).then(function(rentals) {
 		
