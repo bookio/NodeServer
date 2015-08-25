@@ -25,7 +25,20 @@ module.exports = sequelize.define('customers', {
 		type          : Sequelize.TEXT,
 		defaultValue  : '',
 		allowNull     : false
+	},
+
+	'location': {
+		type          : Sequelize.TEXT,
+		defaultValue  : '',
+		allowNull     : false
+	},
+	
+	'twitter': {
+		type          : Sequelize.STRING,
+		defaultValue  : '',
+		allowNull     : false
 	}
+	
 
 }, { 
 	updatedAt: 'updated_at', 
